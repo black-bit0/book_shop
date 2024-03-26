@@ -14,9 +14,11 @@ import book.shop.repositories.BookRepository;
 import book.shop.services.BookService;
 import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 @Service
+@Qualifier("bookServiceImpl")
 public class BookServiceImpl extends BookServiceGrpc.BookServiceImplBase implements BookService {
     private final BookRepository repository;
 

@@ -24,7 +24,8 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    //implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
     compileOnly 'org.projectlombok:lombok'
     runtimeOnly 'org.postgresql:postgresql'
     annotationProcessor 'org.projectlombok:lombok'
@@ -41,6 +42,26 @@ dependencies {
     implementation group: 'io.grpc', name: 'grpc-protobuf', version: '1.62.2'
     implementation group: 'com.google.protobuf', name: 'protobuf-java', version: '3.25.3'
     implementation group: 'io.grpc', name: 'grpc-stub', version: '1.62.2'
+
+    implementation group: 'org.mapstruct', name: 'mapstruct', version: '1.5.5.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
+
+    // testing
+    testImplementation "org.testcontainers:postgresql:1.19.7"
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.10.2'
+    implementation group: 'com.consol.citrus', name: 'citrus-core', version: '3.4.0'
+    testImplementation group: 'com.consol.citrus', name: 'citrus-http', version: '3.4.0'
+    implementation group: 'com.consol.citrus', name: 'citrus-java-dsl', version: '3.4.0'
+    testImplementation group: 'org.testcontainers', name: 'junit-jupiter', version: '1.19.7'
+
+
+
+
+
+
+
+
+
 }
 
 tasks.named('test') {

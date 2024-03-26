@@ -12,9 +12,11 @@ import book.shop.generated.CreateBookRequest;
 import book.shop.generated.DeleteBookRequest;
 import book.shop.generated.DeleteBookResponse;
 import book.shop.generated.UpdateBookRequest;
+import book.shop.mapper.BookMapper;
 import book.shop.observer.UniversalStreamObserver;
 import book.shop.services.impl.BookServiceImpl;
 import io.grpc.stub.StreamObserver;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -30,6 +32,8 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/books")
 public class BookController {
+
+    @Qualifier("bookServiceImpl")
     private final BookServiceImpl bookService;
 
     public BookController(BookServiceImpl bookService) {
@@ -40,67 +44,45 @@ public class BookController {
     public List<BookResponseDTO> getAllBooks() {
         List<book.shop.models.Book> allBooks = bookService.getAllBooks();
         return allBooks.stream()
-                .map(book -> BookResponseDTO.builder()
-                        .title(book.getTitle())
-                        .author(book.getAuthor())
-                        .isbn(book.getIsbn())
-                        .quantity(book.getQuantity())
-                        .build())
+                .map(BookMapper.INSTANCE::map)
                 .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
     public BookResponseDTO getBookById(@PathVariable UUID id) {
         Optional<book.shop.models.Book> bookOptional = bookService.getBookById(id);
-        if (bookOptional.isPresent()) {
-            book.shop.models.Book book = bookOptional.get();
-            return BookResponseDTO.builder()
-                    .title(book.getTitle())
-                    .author(book.getAuthor())
-                    .isbn(book.getIsbn())
-                    .quantity(book.getQuantity())
-                    .build();
-        }
-        return BookResponseDTO.builder().build();
-
+        return bookOptional.map(BookMapper.INSTANCE::map).orElse(null);
     }
-
 
     @PostMapping("/create")
     public ResponseEntity<HttpStatus> createBook(@RequestBody CreateBookRequestDTO requestDTO) {
-        CreateBookRequest.Builder builder = CreateBookRequest.newBuilder();
-        builder.setTitle(requestDTO.getTitle());
-        builder.setAuthor(requestDTO.getAuthor());
-        builder.setIsbn(requestDTO.getIsbn());
-        builder.setQuantity(requestDTO.getQuantity());
-        CreateBookRequest request = builder.build();
-
-        StreamObserver<Book> universalObserver = new UniversalStreamObserver<Book>();
-        bookService.createBook(request, universalObserver);
-        return new ResponseEntity<>(HttpStatus.OK);
+        try {
+            CreateBookRequest request = BookMapper.INSTANCE.map(requestDTO);
+            StreamObserver<Book> universalObserver = new UniversalStreamObserver<>();
+            bookService.createBook(request, universalObserver);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/update")
     public ResponseEntity<HttpStatus> updateBook(@RequestBody UpdateBookRequestDTO requestDTO) {
-        UpdateBookRequest.Builder builder = UpdateBookRequest.newBuilder();
-        builder.setId(requestDTO.getId());
-        builder.setTitle(requestDTO.getTitle());
-        builder.setAuthor(requestDTO.getAuthor());
-        builder.setIsbn(requestDTO.getIsbn());
-        builder.setQuantity(requestDTO.getQuantity());
-        UpdateBookRequest request = builder.build();
-
-        StreamObserver<Book> universalObserver = new UniversalStreamObserver<Book>();
-        bookService.updateBook(request, universalObserver);
-        return new ResponseEntity<>(HttpStatus.OK);
+        try {
+            UpdateBookRequest request = BookMapper.INSTANCE.map(requestDTO);
+            StreamObserver<Book> universalObserver = new UniversalStreamObserver<>();
+            bookService.updateBook(request, universalObserver);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
     }
 
     @DeleteMapping("/{id}")
-    public void deleteBook(@PathVariable DeleteBookRequestDTO requestDTO) {
-        DeleteBookRequest.Builder builder = DeleteBookRequest.newBuilder();
-        DeleteBookRequest id = builder.setId(requestDTO.getId()).build();
-
-        StreamObserver<DeleteBookResponse> universalObserver = new UniversalStreamObserver<DeleteBookResponse>();
-        bookService.deleteBook(id, universalObserver);
+    public void deleteBook(@PathVariable UUID id) {
+        DeleteBookRequestDTO requestDTO = new DeleteBookRequestDTO(id.toString());
+        DeleteBookRequest request = BookMapper.INSTANCE.map(requestDTO);
+        StreamObserver<DeleteBookResponse> universalObserver = new UniversalStreamObserver<>();
+        bookService.deleteBook(request, universalObserver);
     }
 }
