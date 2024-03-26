@@ -6,6 +6,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
+import lombok.Data;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
@@ -13,14 +14,13 @@ import org.hibernate.annotations.UuidGenerator;
 
 @Entity
 @Builder
-@Getter
-@ToString
+@Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class Book {
     @Id
     @UuidGenerator
-    @Column(name = "id", columnDefinition = "BINARY(16)")
+    @Column(name = "id")
     private UUID id;
 
     private String title;
